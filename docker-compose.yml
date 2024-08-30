@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  master:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: image_mpi
+    container_name: master
+    hostname: master
+    networks:
+      network:
+        ipv4_address: 192.168.1.2
+        aliases:
+          - master
+    ports:
+      - "2222:22"
+    volumes:
+      - shared_data:/mpi  
+
+    command: bash -c "service ssh start && mpiexec --allow-run-as-root -n 3 --mca plm_rsh_agent 'ssh -o StrictHostKeyChecking=no' --host master,slaveone,slavetwo /mpi/file_mpi"
+
+
+
+
+
+  slaveone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: image_mpi
+    container_name: slaveone
+    hostname: slaveone
+    networks:
+      network:
+        ipv4_address: 192.168.1.3
+        aliases:
+          - slaveone
+    ports:
+      - "2223:22"
+    volumes:
+      - shared_data:/mpi 
+
+  slavetwo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: image_mpi
+    container_name: slavetwo
+    hostname: slavetwo
+    networks:
+      network:
+        ipv4_address: 192.168.1.4
+        aliases:
+          - slavetwo
+    ports:
+      - "2224:22"
+    volumes:
+      - shared_data:/mpi  
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+        
+volumes:
+   shared_data:
+
